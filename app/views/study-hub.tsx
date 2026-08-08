@@ -7,7 +7,7 @@ import { streakDaysGap } from '@/lib/streak';
 import { useExamState } from './use-state';
 
 export function StudyHubView({
-  definition, onBack, onPractice, onLearn, onSrs, onProgress,
+  definition, onBack, onPractice, onLearn, onSrs, onProgress, onPath,
 }: {
   definition: ExamDefinition;
   onBack: () => void;
@@ -15,6 +15,7 @@ export function StudyHubView({
   onLearn: () => void;
   onSrs: () => void;
   onProgress: () => void;
+  onPath: () => void;
 }) {
   const now = Date.now();
   const { state, loading } = useExamState(definition.code);
@@ -27,6 +28,10 @@ export function StudyHubView({
   const next = nextAction(stats, now);
 
   const modes = [
+    {
+      key: 'path', title: 'Study Path', desc: 'A guided, phased plan: read, verify at 80%, then simulate. Your next step is always clear.',
+      action: onPath, accent: 'border-violet-200 bg-violet-50/40', badge: 'Guide',
+    },
     {
       key: 'learn', title: 'Learn', desc: 'Read the official concepts per skill, then verify with a few questions.',
       action: onLearn, accent: 'border-indigo-200 bg-indigo-50/40', badge: 'Skills',

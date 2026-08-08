@@ -39,6 +39,10 @@ export function learnUrl(code: string): string {
   return `/study/${code}/learn`;
 }
 
+export function pathUrl(code: string): string {
+  return `/study/${code}/path`;
+}
+
 export function srsUrl(code: string): string {
   return `/study/${code}/srs`;
 }

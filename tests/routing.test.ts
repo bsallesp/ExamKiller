@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { serializeStudyFilters, parseStudyFilters } from '../lib/client/study-query';
 import {
   homeUrl, examInstructionsUrl, examSessionUrl, examReviewUrl, examResultsUrl,
-  studyHubUrl, practiceSetupUrl, practiceSessionUrl, learnUrl, srsUrl, progressUrl,
+  studyHubUrl, practiceSetupUrl, practiceSessionUrl, learnUrl, pathUrl, srsUrl, progressUrl,
   parseExamSessionParams,
 } from '../lib/client/routes';
 import type { Difficulty } from '../lib/types';
@@ -66,6 +66,7 @@ describe('route builders', () => {
     expect(studyHubUrl('az-104')).toBe('/study/az-104');
     expect(practiceSetupUrl('az-104')).toBe('/study/az-104/practice');
     expect(learnUrl('az-104')).toBe('/study/az-104/learn');
+    expect(pathUrl('az-104')).toBe('/study/az-104/path');
     expect(srsUrl('az-104')).toBe('/study/az-104/srs');
     expect(progressUrl('az-104')).toBe('/study/az-104/progress');
   });
