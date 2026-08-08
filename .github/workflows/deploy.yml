@@ -1,4 +1,4 @@
-name: Deploy to Azure (controlcrest)
+name: Deploy to Hetzner vm2 (azure.controlcrest.com)
 
 on:
   push:
@@ -6,14 +6,12 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_WEBAPP_NAME: examkiller-prod
-  NODE_VERSION: '20'
+  VM2_HOST: 159.69.251.137
+  APP_DIR: /opt/azure-cc
 
 jobs:
-  build-and-deploy:
+  verify:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -21,7 +19,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version: '20'
           cache: npm
 
       - name: Install dependencies
@@ -39,16 +37,42 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Package deploy artifact
-        run: |
-          sudo apt-get update && sudo apt-get install -y zip
-          zip -r app.zip . -x ".git/*" ".github/*" ".next/cache/*" "node_modules/.cache/*" "data/*.db" "tests/*" "*.md"
-          unzip -l app.zip | tail -1
+      - name: Package source
+        run: tar -czf /tmp/examkiller.tgz --exclude=node_modules --exclude=.next --exclude=data --exclude=tests --exclude=.git --exclude=.github --exclude=*.tsbuildinfo .
 
-      - name: Deploy to Azure App Service
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
-          type: zip
-          package: app.zip
+  deploy:
+    needs: verify
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VM2_SSH_KEY }}" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -H ${{ env.VM2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Package source
+        run: tar -czf /tmp/examkiller.tgz --exclude=node_modules --exclude=.next --exclude=data --exclude=tests --exclude=.git --exclude=.github --exclude=*.tsbuildinfo .
+
+      - name: Upload and deploy
+        run: |
+          scp -i ~/.ssh/id_deploy /tmp/examkiller.tgz root@${{ env.VM2_HOST }}:/tmp/examkiller.tgz
+          ssh -i ~/.ssh/id_deploy root@${{ env.VM2_HOST }} "
+            set -e
+            cd ${{ env.APP_DIR }}
+            tar -xzf /tmp/examkiller.tgz
+            npm ci
+            npm run build
+            systemctl restart examkiller-azure
+            sleep 5
+          "
+
+      - name: Health check
+        run: |
+          code=\$(curl -s -o /dev/null -w '%{http_code}' https://azure.controlcrest.com/ --max-time 30)
+          echo "azure.controlcrest.com -> HTTP \$code"
+          test \"\$code\" = \"200\"
