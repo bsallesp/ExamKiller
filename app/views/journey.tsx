@@ -1,6 +1,6 @@
 "use client";
 
-import { listJourneyDefinitions, listExtraDefinitions } from '@/lib/exams';
+import { listJourneyDefinitions, listExtraDefinitions, getExamPackage } from '@/lib/exams';
 import { getDueCards } from '@/lib/srs';
 import { computeSkillStats } from '@/lib/progress';
 import { domainDot } from './shared';
@@ -22,11 +22,12 @@ function examStatsOf(state: { logs: import('@/lib/progress').AttemptLog[]; cards
 }
 
 export function JourneyView({
-  error, loading, onLearn, onSimulate,
+  error, loading, onLearn, onPath, onSimulate,
 }: {
   error?: string;
   loading: boolean;
   onLearn: (code: string) => void;
+  onPath: (code: string) => void;
   onSimulate: (code: string) => void;
 }) {
   const now = Date.now();
@@ -113,9 +114,17 @@ export function JourneyView({
 
                 {isActive ? (
                   <div className="mt-4 grid grid-cols-2 gap-2">
+                    {getExamPackage(def.code)?.studyPath && (
+                      <button
+                        onClick={() => onPath(def.code)}
+                        className="rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-500"
+                      >
+                        Path
+                      </button>
+                    )}
                     <button
                       onClick={() => onLearn(def.code)}
-                      className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-700"
+                      className={`rounded-xl px-4 py-2.5 text-sm font-semibold ${getExamPackage(def.code)?.studyPath ? 'bg-slate-100 text-slate-700 hover:bg-slate-200' : 'bg-slate-900 text-white hover:bg-slate-700'}`}
                     >
                       Learn
                     </button>

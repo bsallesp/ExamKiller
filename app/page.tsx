@@ -10,6 +10,7 @@ export default function Home() {
     <JourneyView
       loading={false}
       onLearn={code => router.push(`/study/${code}`)}
+      onPath={code => router.push(`/study/${code}/path`)}
       onSimulate={code => router.push(`/exam/${code}/instructions`)}
     />
   );
