@@ -3,6 +3,8 @@ import { questionBank as az104Questions } from './az-104/questions';
 import { skillSummaries as az104Skills, skillDomains as az104SkillDomains } from './az-104/skills';
 import { questionBank as ai901Questions } from './ai-901/questions';
 import { skillSummaries as ai901Skills, skillDomains as ai901SkillDomains } from './ai-901/skills';
+import { studyPath as ai901Path } from './ai-901/path';
+import type { StudyPath } from './ai-901/path';
 
 export interface ExamDomain {
   name: string;
@@ -28,6 +30,7 @@ export interface ExamPackage {
   questions: QuestionSeed[];
   skillSummaries: Record<string, SkillSummary>;
   skillDomains: Record<string, string>;
+  studyPath?: StudyPath;
 }
 
 const az104: ExamDefinition = {
@@ -116,11 +119,17 @@ const packages: Record<string, ExamPackage> = {
     questions: ai901Questions,
     skillSummaries: ai901Skills,
     skillDomains: ai901SkillDomains,
+    studyPath: ai901Path,
   },
 };
 
 export function getExamDefinition(code: string): ExamDefinition | undefined {
   return definitions[code];
+}
+
+export function getActiveExamDefinition(code: string): ExamDefinition | undefined {
+  const def = definitions[code];
+  return def && def.status === 'active' ? def : undefined;
 }
 
 export function getExamPackage(code: string): ExamPackage | undefined {

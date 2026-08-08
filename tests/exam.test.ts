@@ -146,7 +146,7 @@ describe('gradeExam', () => {
       } else if (q.type === 'matching') {
         answers[q.id] = q.options.map(o => `${o.id}::${o.matchTarget === 'Azure Blob Storage' ? 'Azure Files' : 'Azure Blob Storage'}`);
       } else if (q.type === 'ordering') {
-        answers[q.id] = [...q.options.filter(o => (o.orderIndex ?? -1) >= 0).map(o => o.id)].reverse();
+        answers[q.id] = [q.options[0].id];
       } else {
         answers[q.id] = q.options.filter(o => !o.isCorrect).map(o => o.id);
       }

@@ -31,7 +31,9 @@ Additional exams: **AZ-104** — Azure Administrator Associate (55 questions, fu
 
 ```
 app/
-  page.tsx            → view state machine + orchestration only
+  page.tsx            → journey landing (`/`)
+  exam/[code]/        → file-based exam flow: instructions → session → review → results
+  study/[code]/       → file-based study flow: hub, practice (setup + session), learn, srs, progress
   views/              → one file per view (SRP): journey, study-hub, practice-*, learn, srs, progress, exam, results, review, instructions, shared, use-state
   api/                → route handlers: exam, study, state (progress/srs/streak), missed, migrate
 lib/
@@ -43,11 +45,22 @@ lib/
   item-quality.ts     → domain: option length-bias analysis (test-wiseness guard)
   repos/state-repo.ts → application: persistence for attempts, SRS cards, streaks (Drizzle)
   db/                 → infra: SQLite (better-sqlite3) + Drizzle schema + versioned migrations
-  client/             → infra: client-id, API calls, one-shot localStorage migration
-  storage.ts          → infra: browser-side ephemeral exam session only (answers/timer per examId)
+  client/             → infra: client-id, API calls, route builders, study-filter (de)serialization,
+                        exam-session hook (per-examId localStorage hydration), one-shot migration
+  storage.ts          → infra: browser-side ephemeral exam session only (public form, answers,
+                        flags, timer, results — all keyed by examId)
   types.ts            → domain contracts
 tests/                → vitest: unit + integration (routes and repos), SQLite in-memory
 ```
+
+## Routing
+
+Navigation uses real file-based routes (`/`, `/study/[code]/*`, `/exam/[code]/*`). The exam
+session (questions, answers, flags, timer) is persisted in localStorage per `examId`, so
+`instructions → session → review → results` survive page transitions and hard reloads; the
+practice session URL carries the selected filters and is re-fetched on mount. Route builders
+and filter (de)serialization live in `lib/client/routes.ts` / `lib/client/study-query.ts`,
+covered by `tests/routing.test.ts` and `tests/routes.integration.test.ts`.
 
 ## Persistence
 

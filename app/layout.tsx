@@ -1,5 +1,6 @@
 import './globals.css';
 import type { Metadata } from 'next';
+import { MigrateEffect } from './migrate-effect';
 
 export const metadata: Metadata = {
   title: 'ExamKiller — AZ-104',
@@ -9,7 +10,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <MigrateEffect />
+        {children}
+      </body>
     </html>
   );
 }

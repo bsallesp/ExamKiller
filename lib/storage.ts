@@ -1,3 +1,5 @@
+import type { PublicQuestion, ExamResults } from './types';
+
 const PREFIX = 'az104-';
 
 export function loadAnswers(examId: string): Record<string, string[]> {
@@ -43,7 +45,37 @@ export function saveTimerStart(examId: string, startTime: number) {
 
 export function clearExamData(examId: string) {
   if (typeof window === 'undefined') return;
-  for (const key of ['answers', 'flagged', 'timer']) {
+  for (const key of ['answers', 'flagged', 'timer', 'questions']) {
     localStorage.removeItem(`${PREFIX}${key}-${examId}`);
   }
+}
+
+export function loadExamQuestions(examId: string): PublicQuestion[] | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(`${PREFIX}questions-${examId}`);
+    return raw ? (JSON.parse(raw) as PublicQuestion[]) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveExamQuestions(examId: string, questions: PublicQuestion[]) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(`${PREFIX}questions-${examId}`, JSON.stringify(questions));
+}
+
+export function loadExamResults(examId: string): ExamResults | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(`${PREFIX}results-${examId}`);
+    return raw ? (JSON.parse(raw) as ExamResults) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveExamResults(examId: string, results: ExamResults) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(`${PREFIX}results-${examId}`, JSON.stringify(results));
 }
