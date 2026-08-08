@@ -1,4 +1,4 @@
-import type { QuestionSeed } from './types';
+import type { QuestionSeed } from '../../types';
 
 const STUDY_GUIDE = 'https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-104';
 
@@ -44,6 +44,12 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'easy',
     cognitiveLevel: 'apply',
     stem: 'Your organization needs to assign Microsoft 365 E5 licenses to 40 new employees. You must simplify future onboarding so that new hires automatically receive the same license without manual assignment. What should you do?',
+    explanation: 'Microsoft Entra group-based licensing lets you assign a license once to a security group; every current and future member automatically receives it, which removes manual per-user assignment from onboarding.',
+    distractorNotes: [
+      'Assigning licenses individually still requires manual work for every new hire and does not satisfy the automation requirement.',
+      'Resource groups and subscriptions are Azure RBAC scopes; Microsoft 365 licenses are managed at the Microsoft Entra level, not on an Azure resource group.',
+      'The Global Administrator role grants privileged administrative control; it does not assign licenses to anyone.',
+    ],
     correct: ['Create a security group, assign the license to the group, and add the employees to the group'],
     distractors: [
       'Assign the license individually to each of the 40 users via the Microsoft 365 admin center',
@@ -59,6 +65,12 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'easy',
     cognitiveLevel: 'apply',
     stem: 'A support technician needs to restart VMs in a single resource group named RG-Prod-Web but must not be able to modify network settings or access other resource groups. You must follow the principle of least privilege. At which scope should you assign the Virtual Machine Contributor role?',
+    explanation: 'Virtual Machine Contributor at the resource group scope grants exactly the rights needed on every VM inside RG-Prod-Web while giving no access to other resource groups, satisfying least privilege with a single assignment.',
+    distractorNotes: [
+      'The root management group and subscription are far too broad: they would let the technician modify VMs across every subscription and resource group under them.',
+      'This scope grants access to all resources in the subscription, including networks and other resource groups, violating least privilege.',
+      'Per-VM assignments work but are impractical to maintain; the resource group scope covers exactly the VMs in question with one assignment.',
+    ],
     correct: ['RG-Prod-Web resource group'],
     distractors: [
       'The root management group',
@@ -74,6 +86,12 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'easy',
     cognitiveLevel: 'apply',
     stem: 'The finance team needs to generate monthly cost reports grouped by department. Each Azure resource must carry a department identifier that appears in Cost Management exports. Which governance feature should you apply?',
+    explanation: 'Tags are key/value metadata applied to Azure resources; Cost Management exports and reports include tags, which lets the finance team group costs by department.',
+    distractorNotes: [
+      'A ReadOnly lock prevents deletion and configuration changes; it carries no metadata for cost grouping.',
+      'NSG rules filter network traffic; they cannot tag resources or influence cost reports.',
+      'A region-denying policy enforces locations; it does not add the department identifier used in cost grouping.',
+    ],
     correct: ['A tag with a key such as Department and the appropriate department value on each resource'],
     distractors: [
       'A ReadOnly resource lock on each resource',
@@ -89,6 +107,12 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'medium',
     cognitiveLevel: 'apply',
     stem: 'An external consultant using their own corporate email (consultant@partner.com) needs read-only access to a specific SharePoint site in your Microsoft Entra tenant for 30 days. You must not create a new username and password for them. What type of identity should you use?',
+    explanation: 'Microsoft Entra B2B collaboration invites the consultant as a guest using their own corporate identity, so no new credentials are created, and you control and can expire the access.',
+    distractorNotes: [
+      'A system-assigned managed identity is a service principal used by Azure resources to authenticate; it is not for external people.',
+      'A shared storage account key exposes full account access and is unrelated to SharePoint; it also violates the requirement of scoped access.',
+      'A service endpoint extends a VNet\'s connectivity to Azure services; it is a networking feature with nothing to do with external user identity.',
+    ],
     correct: ['A B2B guest user invited to your Microsoft Entra tenant'],
     distractors: [
       'A system-assigned managed identity on a virtual machine',
@@ -100,18 +124,25 @@ export const questionBank: QuestionSeed[] = [
   },
   {
     domain: DOMAINS.ID,
-    skill: 'Configure self-service password reset (SSPR)',
+    skill: 'Assign roles at different scopes',
     difficulty: 'medium',
     cognitiveLevel: 'apply',
-    stem: 'Users must be able to reset their own passwords without calling the help desk. The security policy requires that users confirm two different authentication methods before resetting. Which configuration meets this requirement?',
-    correct: ['Enable SSPR for the appropriate user group and require two authentication methods'],
-    distractors: [
-      'Configure password hash synchronization only, without enabling SSPR',
-      'Apply an Azure Policy with a Deny effect on password changes',
-      'Place a CanNotDelete lock on each user object in Microsoft Entra ID',
-    ],
+    stem: 'For each of the following statements about Azure role-based access control, select Yes if the statement is true or No if the statement is false.',
+    explanation: 'RBAC assignments are inherited from parent scopes to child scopes: management group → subscription → resource group → resource. An assignment at a child scope never grants permissions at a parent scope, and deny assignments always take precedence over allow assignments.',
+    correct: [],
+    distractors: [],
     sourceUrl: STUDY_GUIDE,
-    type: 'single',
+    type: 'hot_area',
+    hotArea: {
+      columns: ['Yes', 'No'],
+      rows: [
+        { label: 'A role assignment at the resource group scope applies to every resource in that resource group.', cells: [{ text: 'Yes', correct: true }, { text: 'No', correct: false }] },
+        { label: 'A role assignment at the resource scope also grants permissions at the parent resource group scope.', cells: [{ text: 'Yes', correct: false }, { text: 'No', correct: true }] },
+        { label: 'A deny assignment blocks a user\'s access even if a role assignment grants the same access.', cells: [{ text: 'Yes', correct: true }, { text: 'No', correct: false }] },
+        { label: 'A role assignment at a management group scope is inherited by all subscriptions below that management group.', cells: [{ text: 'Yes', correct: true }, { text: 'No', correct: false }] },
+        { label: 'A role assignment at the subscription scope is inherited by all resource groups within that subscription.', cells: [{ text: 'Yes', correct: true }, { text: 'No', correct: false }] },
+      ],
+    },
   },
   {
     domain: DOMAINS.ID,
@@ -119,6 +150,12 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'medium',
     cognitiveLevel: 'apply',
     stem: 'New Azure resources must be blocked from deployment unless they are created in one of three approved Azure regions: East US, West Europe, or Southeast Asia. Resources deployed to any other region must be denied at creation time. What should you configure?',
+    explanation: 'Azure Policy with the Deny effect enforces compliance at deployment time: the built-in "Allowed locations" policy with Deny blocks any resource created outside the approved list of regions.',
+    distractorNotes: [
+      'Manually applied tags can be forgotten or inconsistent and never prevent a deployment; enforcement is what the requirement asks for.',
+      'A budget alert only notifies about spending; it cannot deny resource creation.',
+      'NSG rules filter network traffic after a resource exists; they have no effect on deployment location.',
+    ],
     correct: ['An Azure Policy definition with the Deny effect specifying the allowed locations list'],
     distractors: [
       'A tag named AllowedRegion applied manually to each resource',
@@ -134,6 +171,12 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'medium',
     cognitiveLevel: 'apply',
     stem: 'A production storage account named saprodstore01 contains critical data. It must not be deleted accidentally, but administrators still need to change its configuration settings, such as enabling soft delete and modifying firewall rules. Which lock type should you apply?',
+    explanation: 'A CanNotDelete lock prevents deletion of the storage account but still allows administrators to read and modify its configuration, which matches both requirements exactly.',
+    distractorNotes: [
+      'A ReadOnly lock at the subscription level blocks all configuration changes across the subscription and is far broader than the single storage account.',
+      'There is no lock at the Microsoft Entra tenant level, and locking the tenant would not protect the storage account.',
+      'A lock on the development resource group protects the wrong resource entirely.',
+    ],
     correct: ['A CanNotDelete lock on saprodstore01'],
     distractors: [
       'A ReadOnly lock at the subscription level',
@@ -149,6 +192,12 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'medium',
     cognitiveLevel: 'apply',
     stem: 'Your organization has five Azure subscriptions belonging to different departments: HR, Finance, Engineering, Sales, and Marketing. The same compliance policy must apply to all five subscriptions, and any new subscription added in the future must automatically inherit this policy. Where should the policy be assigned?',
+    explanation: 'Assigning the policy at the management group that parents the five subscriptions makes every current subscription inherit it, and any subscription created under that management group later inherits it automatically.',
+    distractorNotes: [
+      'Policies govern Azure resources; assigning to user accounts would not enforce anything on subscriptions.',
+      'A virtual network is not a governance container that subscriptions inherit policies from.',
+      'A security group collects users for role assignment; it cannot carry a compliance policy for subscriptions.',
+    ],
     correct: ['At the management group that is the parent of all five subscriptions'],
     distractors: [
       'Directly on each individual user account in Microsoft Entra ID',
@@ -164,6 +213,12 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'medium',
     cognitiveLevel: 'apply',
     stem: 'The cloud operations team wants to receive an email notification when the forecasted monthly spend reaches 80% of the defined budget limit, regardless of current actual spend. What should they create?',
+    explanation: 'Azure budgets support forecast-based alerts: the alert triggers on projected spend, not just actual spend, and can notify via an action group, which is how the email is delivered.',
+    distractorNotes: [
+      'A ReadOnly lock prevents changes; it neither tracks cost nor sends notifications.',
+      'Azure Policy cannot evaluate cost; its effects act on resource properties and configuration.',
+      'Azure Service Health alerts notify about Azure service incidents and health advisories, not about your subscription spend.',
+    ],
     correct: ['An Azure budget with a forecast-based alert condition at 80% linked to an action group'],
     distractors: [
       'A ReadOnly lock on the billing scope to prevent overspend',
@@ -179,6 +234,12 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'medium',
     cognitiveLevel: 'analyze',
     stem: 'An operations analyst needs to view all Azure resources, read monitoring data, and open support requests with Microsoft. However, they must NOT be able to create, modify, or delete any resource. Which combination of built-in roles at the subscription scope meets all requirements with least privilege?',
+    explanation: 'Reader grants read-only access to all resources, including monitoring data, and Support Request Contributor allows opening support tickets. Together they cover every requirement with the least privilege.',
+    distractorNotes: [
+      'Owner includes full write and access-management control, far beyond what the analyst needs.',
+      'User Access Administrator manages role assignments and Virtual Machine Contributor can modify VMs — both violate the no-modification requirement.',
+      'Contributor can create and modify resources, which is explicitly forbidden for this user.',
+    ],
     correct: ['Reader plus Support Request Contributor'],
     distractors: [
       'Owner at the subscription scope',
@@ -194,6 +255,11 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'hard',
     cognitiveLevel: 'analyze',
     stem: 'A Contributor role is assigned to a Microsoft Entra security group at the subscription scope. Which two outcomes will occur as a result of this assignment?',
+    explanation: 'Assigning a role to a security group grants the role to all current members and to every user added later, and a subscription-scope assignment applies to every resource group and resource within that subscription.',
+    distractorNotes: [
+      'Role assignments are additive: they never override or remove other role assignments a user may have.',
+      'A role assignment is scoped to the subscription where it is made; it cannot grant access in other subscriptions, even under the same tenant.',
+    ],
     correct: [
       'All current and future members of the group will inherit the Contributor role',
       'The role assignment will apply to every resource group and resource within the subscription',
@@ -211,6 +277,12 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'hard',
     cognitiveLevel: 'apply',
     stem: 'No built-in Azure role grants exactly the permissions your team needs. You decide to create a custom role using Azure PowerShell. Which property of the custom role definition controls the subscriptions, resource groups, or management groups where this role can be assigned?',
+    explanation: 'assignableScopes is the property that lists the management groups, subscriptions, or resource groups where the custom role can be assigned; it limits where the role appears in the portal and API.',
+    distractorNotes: [
+      'notActions lists specific permissions excluded from the role\'s actions; it does not control where the role can be assigned.',
+      'dataActions grants permissions to data operations (like reading blobs); it is about what the role can do, not where it is assignable.',
+      'description is free-form metadata for documentation only.',
+    ],
     correct: ['assignableScopes'],
     distractors: [
       'notActions',
@@ -226,6 +298,12 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'hard',
     cognitiveLevel: 'apply',
     stem: 'You assign a policy with the DeployIfNotExists effect to ensure that all existing and new virtual machines have the Azure Monitor agent installed. Several VMs were created before the policy was assigned and lack the agent. What must you do to bring those existing VMs into compliance?',
+    explanation: 'DeployIfNotExists only evaluates and marks resources non-compliant; a remediation task, running with the policy\'s managed identity, performs the actual deployment of the agent on existing VMs.',
+    distractorNotes: [
+      'Locks prevent accidental changes; they do not install software or remediate policy compliance.',
+      'Moving VMs to another subscription does not make the policy deploy anything; it may even move them out of the policy scope.',
+      'Budget alerts track spending and cannot install agents or remediate compliance.',
+    ],
     correct: ['Create a remediation task for the policy using a managed identity that has the necessary permissions'],
     distractors: [
       'Apply a ReadOnly lock to the non-compliant VMs until they self-remediate',
@@ -237,7 +315,7 @@ export const questionBank: QuestionSeed[] = [
   },
 
   // ═══════════════════════════════════════════════════════════════
-  // STORAGE — 10 + 1 case study (2 easy, 5 medium, 3 hard)
+  // STORAGE — 10 + 1 case study (2 easy, 6 medium, 3 hard)
   // ═══════════════════════════════════════════════════════════════
 
   {
@@ -246,6 +324,12 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'easy',
     cognitiveLevel: 'apply',
     stem: 'Two Windows Server VMs in the same virtual network need to mount a shared file system simultaneously using the SMB protocol. The solution must be fully managed and require no on-premises infrastructure. Which Azure service should you use?',
+    explanation: 'Azure Files provides fully managed SMB file shares that multiple VMs in the same VNet can mount simultaneously, with no on-premises infrastructure required.',
+    distractorNotes: [
+      'A managed disk can be attached to only one VM at a time; it cannot be shared between two VMs simultaneously.',
+      'Azure Queue Storage is an asynchronous messaging service; it does not provide an SMB file system.',
+      'Azure Table Storage is a NoSQL key-attribute store; it does not expose file share endpoints.',
+    ],
     correct: ['Azure Files with an SMB file share'],
     distractors: [
       'An Azure managed disk attached to both VMs simultaneously',
@@ -261,11 +345,17 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'easy',
     cognitiveLevel: 'apply',
     stem: 'Blob data is read and written multiple times per day by a production application that requires sub-10ms latency. Which access tier should you select for this storage account?',
-    correct: ['Hot tier'],
+    explanation: 'The Hot tier is designed for frequently accessed data and offers the lowest access latency, which the sub-10ms requirement demands.',
+    distractorNotes: [
+      'Archive is for rarely accessed data; reading it requires a rehydration step that can take hours.',
+      'Cool is optimized for infrequent access and has higher access costs and latency than Hot.',
+      'There is no "Offline tier" for blob storage, and any rehydration-based tier fails the latency requirement.',
+    ],
+    correct: ['Hot tier for frequently accessed data'],
     distractors: [
-      'Archive tier',
-      'Cool tier with a lifecycle management policy',
-      'Offline tier with manual rehydration',
+      'Archive tier for cold, rarely accessed data',
+      'Cool tier with a lifecycle management rule',
+      'Offline tier with manual rehydration steps',
     ],
     sourceUrl: STUDY_GUIDE,
     type: 'single',
@@ -276,6 +366,12 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'medium',
     cognitiveLevel: 'apply',
     stem: 'A vendor needs to upload files to a specific container in your Azure Storage account for a period of two hours. You must NOT share the storage account key. Which access method should you provide?',
+    explanation: 'A shared access signature (SAS) grants scoped, time-limited access — here, write permission to a single container expiring in two hours — without ever revealing the account key.',
+    distractorNotes: [
+      'The primary account key grants full, permanent access to the entire storage account; sharing it violates the requirement and is a serious security risk.',
+      'A connection string contains the account key and never expires, granting permanent full access.',
+      'Owner on the subscription is enormous over-permission and uses Azure RBAC, not scoped data access.',
+    ],
     correct: ['A shared access signature (SAS) with write permission and a two-hour expiration'],
     distractors: [
       'The primary storage account key via encrypted email',
@@ -287,18 +383,22 @@ export const questionBank: QuestionSeed[] = [
   },
   {
     domain: DOMAINS.ST,
-    skill: 'Configure Azure Storage firewalls',
+    skill: 'Create and configure Azure Storage services',
     difficulty: 'medium',
     cognitiveLevel: 'apply',
-    stem: 'A storage account must accept network access exclusively from the subnet named app-subnet within the VNet named prod-vnet. All other network access, including from the public internet, must be blocked. Which configuration should you apply?',
-    correct: ['Enable the storage account firewall and add app-subnet to the allowed virtual network list'],
-    distractors: [
-      'Enable public network access from all networks',
-      'Apply a tag named AllowedSubnet to the storage account',
-      'Configure an Azure budget with a 100% threshold alert',
+    stem: 'Match each data workload to the correct Azure service. Each service can be used only once.',
+    explanation: 'Blob Storage stores unstructured object data (images, videos) served over HTTP; Azure Files provides SMB file sharing; Queue Storage decouples components with async messages; Table Storage stores schema-less NoSQL data. Azure NetApp Files is the extra target: a premium enterprise NFS/SMB service that is not the default fit for these workloads.',
+    correct: [
+      'Store large amounts of unstructured object data, such as images and videos, that applications read over HTTP',
+      'Share files between applications over the SMB protocol',
+      'Decouple application components with asynchronous message passing',
+      'Store structured NoSQL data without requiring a fixed schema',
     ],
+    correctTargets: ['Azure Blob Storage', 'Azure Files', 'Azure Queue Storage', 'Azure Table Storage'],
+    targets: ['Azure Blob Storage', 'Azure Files', 'Azure Queue Storage', 'Azure Table Storage', 'Azure NetApp Files'],
+    distractors: [],
     sourceUrl: STUDY_GUIDE,
-    type: 'single',
+    type: 'matching',
   },
   {
     domain: DOMAINS.ST,
@@ -306,6 +406,12 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'medium',
     cognitiveLevel: 'apply',
     stem: 'An application requires data to be synchronously replicated across three availability zones within the same Azure region. Which redundancy option should you select for the storage account?',
+    explanation: 'Zone-redundant storage (ZRS) synchronously replicates data across three availability zones in the same region, exactly matching the requirement.',
+    distractorNotes: [
+      'LRS replicates within a single datacenter, not across availability zones.',
+      'GRS replicates to a geographically distant secondary region, not across zones of the same region, and the secondary copy is not synchronously maintained.',
+      'RA-GRS adds read access to the geo-replicated copy; it still does not replicate across three zones in one region.',
+    ],
     correct: ['Zone-redundant storage (ZRS)'],
     distractors: [
       'Locally-redundant storage (LRS)',
@@ -321,6 +427,12 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'medium',
     cognitiveLevel: 'apply',
     stem: 'Blobs that have not been modified for 90 days must be automatically moved from the Hot tier to the Cool tier to reduce storage costs. What should you configure?',
+    explanation: 'A blob lifecycle management rule can move blobs between tiers based on "days since last modification", automating the Hot-to-Cool transition after 90 days.',
+    distractorNotes: [
+      'A stored access policy governs SAS token permissions and validity; it does not change storage tiers.',
+      'NSG rules filter network traffic and have nothing to do with blob tiering.',
+      'Object replication asynchronously copies blobs to another account; it does not change the tier of the source data.',
+    ],
     correct: ['A lifecycle management rule with a filter based on days since last modification'],
     distractors: [
       'A stored access policy with a 90-day expiration',
@@ -336,6 +448,12 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'medium',
     cognitiveLevel: 'apply',
     stem: 'You need to copy a large directory tree containing thousands of files from an on-premises Windows server to an Azure Blob Storage container. The copy must be recursive, resume on failure, and run from a command-line script. Which tool should you use, and which flag is essential?',
+    explanation: 'AzCopy is the command-line tool built for high-performance blob transfers; it supports recursive copy and resumable transfers, and --recursive is the flag that copies the full directory tree.',
+    distractorNotes: [
+      'Azure DNS CLI manages DNS zones and records; it cannot transfer files.',
+      'Network Watcher packet capture inspects network traffic; it is not a file transfer tool.',
+      'Bicep decompile converts ARM templates to Bicep; it does not copy data.',
+    ],
     correct: ['AzCopy with the copy command and the --recursive flag'],
     distractors: [
       'Azure DNS CLI with the zone-export flag',
@@ -351,11 +469,17 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'hard',
     cognitiveLevel: 'analyze',
     stem: 'You have issued multiple service-level SAS tokens to different clients for the same container. A security incident requires you to immediately revoke all of these SAS tokens without rotating the storage account keys, which would also disrupt other services. How should you have created the SAS tokens to enable this?',
-    correct: ['Associate all SAS tokens with a stored access policy on the container, which can be deleted or modified to revoke access'],
+    explanation: 'A service-level SAS created against a stored access policy can be revoked instantly by deleting or modifying the policy, because every token inherits the policy\'s permissions and validity.',
+    distractorNotes: [
+      'A user-delegation SAS is signed with a user identity and cannot be revoked through a stored access policy; revoking it requires the identity\'s permissions or key rotation.',
+      'Anonymous public access exposes the container to everyone and is not a controlled token mechanism at all.',
+      'Distributing the account key grants permanent full-account access and removes any ability to revoke individual clients.',
+    ],
+    correct: ['Associate all SAS tokens with a stored access policy that can be deleted to revoke them'],
     distractors: [
-      'Create only user-delegation SAS tokens with no expiration',
-      'Enable anonymous public access on the container',
-      'Copy the primary storage account key to each client and monitor usage',
+      'Create user-delegation SAS tokens with no expiration date',
+      'Enable anonymous public access on the container itself',
+      'Copy the primary storage account key to each client for use',
     ],
     sourceUrl: STUDY_GUIDE,
     type: 'single',
@@ -366,6 +490,11 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'hard',
     cognitiveLevel: 'apply',
     stem: 'You plan to configure object replication between two Azure storage accounts to asynchronously copy block blobs from a source account in East US to a destination account in West Europe. Which two features must be enabled before configuring the replication policy?',
+    explanation: 'Object replication requires blob versioning enabled on both the source and destination accounts (to preserve replicated versions) and the change feed enabled on the source account (to track blob changes for replication).',
+    distractorNotes: [
+      'NFS 3.0 protocol is unrelated to object replication; it is an access protocol for file data.',
+      'Anonymous public access is a security risk and has no role in object replication.',
+    ],
     correct: [
       'Blob versioning on both the source and destination accounts',
       'Change feed on the source account',
@@ -383,6 +512,12 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'hard',
     cognitiveLevel: 'apply',
     stem: 'Your security policy requires that you control, rotate, and audit the encryption keys used to encrypt data at rest in your Azure Storage account. Microsoft-managed keys are not acceptable. What should you configure?',
+    explanation: 'Customer-managed keys let you bring your own keys from Azure Key Vault; the storage account references the key URI so your organization controls rotation and auditing of the encryption keys.',
+    distractorNotes: [
+      'A SAS token grants access to data; it is never used as an encryption key.',
+      'An SSH public key authenticates VM sign-in; it does not encrypt storage data at rest.',
+      'A TLS certificate secures traffic in transit and custom-domain HTTPS; it does not encrypt the stored data itself.',
+    ],
     correct: ['Customer-managed keys stored in Azure Key Vault with the key URI referenced in the storage account encryption settings'],
     distractors: [
       'An account-level SAS token used as an encryption key',
@@ -394,7 +529,7 @@ export const questionBank: QuestionSeed[] = [
   },
 
   // ═══════════════════════════════════════════════════════════════
-  // COMPUTE — 12 + 1 case study (3 easy, 6 medium, 3 hard)
+  // COMPUTE — 12 + 1 case study (3 easy, 7 medium, 3 hard)
   // ═══════════════════════════════════════════════════════════════
 
   {
@@ -403,6 +538,12 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'easy',
     cognitiveLevel: 'apply',
     stem: 'You need to run a single, stateless container workload for batch processing that starts on demand and terminates after completion. You do NOT want to manage any virtual machines, Kubernetes clusters, or container orchestration platforms. Which Azure service should you choose?',
+    explanation: 'Azure Container Instances runs a single container without any VM, cluster, or orchestrator to manage — exactly the on-demand, stateless batch workload described.',
+    distractorNotes: [
+      'Azure Virtual Desktop is a desktop virtualization service, not a container runtime.',
+      'Azure DNS resolves names; it does not execute workloads.',
+      'Azure Files is a file share service; it cannot run containers.',
+    ],
     correct: ['Azure Container Instances'],
     distractors: [
       'Azure Virtual Desktop with a container host pool',
@@ -418,7 +559,13 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'easy',
     cognitiveLevel: 'apply',
     stem: 'A development team needs to host a web application without managing the underlying operating system, web server, or infrastructure patching. The application must support automatic OS updates and platform-managed TLS certificates. Which Azure service should you provision?',
-    correct: ['Azure App Service'],
+    explanation: 'Azure App Service is a Platform-as-a-Service (PaaS) offering where Microsoft manages the OS, patching, and TLS certificates, so the team only manages the application.',
+    distractorNotes: [
+      'Azure VPN Gateway provides encrypted network connectivity between on-premises and Azure; it does not host applications.',
+      'Azure Route Server manages BGP routing between networks, not web hosting.',
+      'Azure Backup vault stores recovery points; it does not host applications.',
+    ],
+    correct: ['Azure App Service with platform-managed hosting'],
     distractors: [
       'Azure VPN Gateway with application proxy',
       'Azure Route Server with a web route',
@@ -433,6 +580,12 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'easy',
     cognitiveLevel: 'apply',
     stem: 'You deploy two virtual machines running a stateless web application. The solution must tolerate a complete datacenter failure within an Azure region. How should the VMs be distributed?',
+    explanation: 'Availability zones are physically separate datacenters inside a region; deploying each VM in a different zone keeps the application running if one entire datacenter fails.',
+    distractorNotes: [
+      'An availability set protects against rack and update-fault failures within one datacenter; it cannot survive a full datacenter outage.',
+      'A disk cannot be attached to two VMs at the same time, and this option does not address failure domains at all.',
+      'A proximity placement group places VMs close together, which increases co-location risk rather than providing failure isolation.',
+    ],
     correct: ['Deploy each VM to a different availability zone within the same region'],
     distractors: [
       'Place both VMs in the same availability set in a single zone',
@@ -448,6 +601,12 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'medium',
     cognitiveLevel: 'apply',
     stem: 'A web application runs on a Virtual Machine Scale Set. When average CPU utilization exceeds 70% for 10 minutes, the instance count should increase automatically. When CPU drops below 30% for 10 minutes, instances should decrease. What should you configure?',
+    explanation: 'VMSS autoscale rules react to the Percentage CPU metric with thresholds and durations: a scale-out rule at 70% for 10 minutes and a scale-in rule below 30% for 10 minutes.',
+    distractorNotes: [
+      'Blob lifecycle management rules tier blobs in storage; they cannot change VM instance counts.',
+      'An Audit-effect policy only logs compliance status; it performs no scaling.',
+      'A DNS alias record distributes traffic; it does not provision or remove VM instances.',
+    ],
     correct: ['An autoscale rule on the scale set with scale-out and scale-in conditions based on CPU percentage'],
     distractors: [
       'A blob lifecycle management rule on the OS disk',
@@ -459,18 +618,23 @@ export const questionBank: QuestionSeed[] = [
   },
   {
     domain: DOMAINS.CO,
-    skill: 'Manage virtual machine disks',
+    skill: 'Create and manage shared images',
     difficulty: 'medium',
     cognitiveLevel: 'apply',
-    stem: 'A SQL Server virtual machine requires sub-millisecond latency and consistently high IOPS for its data disks. The workload is performance-sensitive and cannot tolerate throttling during peak hours. Which disk type should you choose?',
-    correct: ['Premium SSD v2 managed disks with provisioned IOPS and throughput'],
+    stem: 'You need to make a generalized Windows VM image available so that teams in multiple subscriptions can deploy new virtual machines from it. Arrange the steps in the correct order. Not all steps must be used.',
+    explanation: 'The correct sequence is: create the Azure Compute Gallery, create an image definition inside it, create an image version from the generalized source VM, then deploy new VMs from that version. A Recovery Services vault and blob versioning are unrelated to image sharing.',
+    correct: [
+      'Create an Azure Compute Gallery',
+      'Create an image definition in the gallery',
+      'Create an image version from the generalized source VM',
+      'Create the virtual machine using the image version',
+    ],
     distractors: [
-      'Standard HDD with host-level caching enabled',
-      'Archive-tier blob storage mounted as a virtual disk',
-      'Azure Files Cool tier share mapped as a network drive',
+      'Create a Recovery Services vault to store the image',
+      'Enable blob versioning on the source VM disk',
     ],
     sourceUrl: STUDY_GUIDE,
-    type: 'single',
+    type: 'ordering',
   },
   {
     domain: DOMAINS.CO,
@@ -478,6 +642,12 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'medium',
     cognitiveLevel: 'apply',
     stem: 'You are writing a Bicep file that deploys an App Service. The environment name (dev, test, prod) must be provided at deployment time so that the same Bicep file can be used across all environments. How should you handle this in the Bicep code?',
+    explanation: 'Bicep parameters declared with the param keyword receive values at deployment time, letting the same file be deployed to dev, test, and prod with different inputs.',
+    distractorNotes: [
+      'An output returns values from a deployment; it does not accept input values.',
+      'An NSG rule named after the environment changes network filtering; it does not parameterize the deployment.',
+      'A stored access policy manages storage SAS permissions and has nothing to do with Bicep deployment inputs.',
+    ],
     correct: ['Declare a parameter using the param keyword and reference it in the resource definitions'],
     distractors: [
       'Define an output without a corresponding input',
@@ -493,6 +663,12 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'medium',
     cognitiveLevel: 'apply',
     stem: 'Your team is building containerized microservices. Container images must be stored in a private registry located in the same Azure region as your AKS cluster to minimize pull latency. Which resource should you create?',
+    explanation: 'Azure Container Registry is the private registry service for container images; creating it in the same region as the AKS cluster minimizes image pull latency.',
+    distractorNotes: [
+      'A Recovery Services vault stores backup recovery points, not container images.',
+      'Application Gateway routes and load-balances traffic; it does not store container images.',
+      'A DNS private resolver resolves private names; it is not an image registry.',
+    ],
     correct: ['An Azure Container Registry in the same region as the AKS cluster'],
     distractors: [
       'A Recovery Services vault with container backup enabled',
@@ -508,6 +684,12 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'medium',
     cognitiveLevel: 'apply',
     stem: 'Your team deploys a new version of a web app to production. Before directing production traffic to the new version, you must validate it in a staging environment. After validation, the swap must happen instantly with no cold start. What should you use?',
+    explanation: 'Deployment slots provide separate staging and production environments; validating in the staging slot and then swapping slots redirects production traffic instantly with no cold start.',
+    distractorNotes: [
+      'Deleting and recreating the App Service plan causes downtime and loses configuration; it is not how staging works.',
+      'Changing DNS records directs traffic to a different host, but does not swap an app version and introduces propagation delays.',
+      'Creating a new subscription per deployment is completely disproportionate and does not enable instant swapping.',
+    ],
     correct: ['A deployment slot named staging, validate the app there, then perform a slot swap with the production slot'],
     distractors: [
       'Delete and recreate the App Service plan for each deployment',
@@ -523,7 +705,13 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'medium',
     cognitiveLevel: 'apply',
     stem: 'An App Service must run on three instances during business hours (8 AM to 6 PM) and scale down to one instance overnight and on weekends. Which configuration change is required?',
-    correct: ['Modify the instance count of the App Service plan, either manually or via a scale rule with a schedule'],
+    explanation: 'Instance count is a property of the App Service plan; changing it (manually or with scheduled autoscale rules) is how you adjust capacity by time of day and day of week.',
+    distractorNotes: [
+      'The number of resource groups has no effect on how many instances run an App Service.',
+      'Log Analytics retention controls how long log data is kept; it does not affect instance count.',
+      'The VPN Gateway SKU is a networking component and is unrelated to App Service capacity.',
+    ],
+    correct: ['Modify the instance count of the App Service plan, manually or via a scheduled scale rule'],
     distractors: [
       'Increase the number of resource groups containing the App Service',
       'Change the Log Analytics workspace retention period',
@@ -538,6 +726,11 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'hard',
     cognitiveLevel: 'analyze',
     stem: 'You need to move a virtual machine from one Azure subscription to another. The VM has a managed OS disk, a data disk, and a network interface. Which two prerequisites must be verified before initiating the move?',
+    explanation: 'Moving resources across subscriptions requires both subscriptions to be in the same Microsoft Entra tenant, and all dependent resources — disks, NICs — must be moved together or handled appropriately in the move.',
+    distractorNotes: [
+      'Managed disks are fully supported in cross-subscription moves; unmanaged disks are not a prerequisite.',
+      'Display names of subscriptions are cosmetic and have no bearing on whether a move is possible.',
+    ],
     correct: [
       'Both subscriptions must belong to the same Microsoft Entra tenant',
       'All dependent resources (disks, NICs) must be moved together or handled appropriately',
@@ -555,6 +748,12 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'hard',
     cognitiveLevel: 'apply',
     stem: 'You need to configure the custom domain www.contoso.com for an App Service without causing downtime for the existing website. The domain is registered with a third-party registrar. Which DNS record type does App Service require you to create to verify domain ownership?',
+    explanation: 'App Service requires a TXT record containing the domain verification ID shown in the custom domain blade to prove you own the domain before the custom domain can be mapped.',
+    distractorNotes: [
+      'A PTR record performs reverse DNS resolution and cannot be used for domain ownership verification.',
+      'An SRV record defines service locations (port, target); it is not used for App Service domain verification.',
+      'An NS record delegates the entire zone to another server, which would hand over control of the domain — the wrong tool here.',
+    ],
     correct: ['A TXT record with the domain verification ID provided by the App Service custom domain blade'],
     distractors: [
       'A PTR record pointing to the private IP address of the App Service',
@@ -570,6 +769,12 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'hard',
     cognitiveLevel: 'apply',
     stem: 'You have a Bicep file that must create five identical storage accounts based on an array of storage account names. You want to avoid duplicating the resource declaration five times. Which Bicep construct should you use?',
+    explanation: 'A for-loop on the resource declaration iterates over the array of names and deploys one storage account per item, keeping the declaration written only once.',
+    distractorNotes: [
+      'Copying and pasting the declaration five times is exactly the duplication the requirement wants to avoid.',
+      'An if condition evaluates a boolean to include or exclude a resource; it cannot create multiple resources from an array.',
+      'An output statement returns computed values from a deployment; it cannot deploy resources by itself.',
+    ],
     correct: ['A for-loop on the resource declaration iterating over the array of names'],
     distractors: [
       'Copy and paste the resource declaration five times with different names',
@@ -581,7 +786,7 @@ export const questionBank: QuestionSeed[] = [
   },
 
   // ═══════════════════════════════════════════════════════════════
-  // NETWORKING — 9 + 1 case study (2 easy, 5 medium, 2 hard)
+  // NETWORKING — 9 + 1 case study (2 easy, 5 medium, 3 hard)
   // ═══════════════════════════════════════════════════════════════
 
   {
@@ -590,6 +795,12 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'easy',
     cognitiveLevel: 'apply',
     stem: 'A subnet hosts web servers that must accept HTTPS traffic from the internet. All other inbound ports must remain blocked. Which NSG rule should you create?',
+    explanation: 'An NSG inbound rule allowing TCP destination port 443 from the Internet service tag permits HTTPS while the default deny rules keep every other inbound port blocked.',
+    distractorNotes: [
+      'A user-defined route changes where traffic is sent; it does not filter which ports are allowed.',
+      'Blob lifecycle management rules manage storage tiers; they cannot filter network traffic.',
+      'A SAS token grants scoped storage access; it is not a firewall mechanism.',
+    ],
     correct: ['An inbound rule allowing TCP destination port 443 with source set to Internet'],
     distractors: [
       'A user-defined route that sends HTTPS traffic to a virtual appliance',
@@ -605,6 +816,12 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'easy',
     cognitiveLevel: 'apply',
     stem: 'Two virtual networks in the same Azure region need to communicate with each other using private IP addresses over the Microsoft backbone network with minimal latency. No VPN gateways should be deployed. Which connectivity method should you use?',
+    explanation: 'Virtual network peering connects two VNets directly over the Microsoft backbone with private IPs and low latency, without any VPN gateway.',
+    distractorNotes: [
+      'Azure Files is a storage service for file shares, not a network interconnect.',
+      'Azure Policy enforces governance rules; it cannot create connectivity between VNets.',
+      'A Recovery Services vault provides backup and disaster recovery, not networking.',
+    ],
     correct: ['Virtual network peering between the two VNets'],
     distractors: [
       'Azure Files with a shared file system',
@@ -620,6 +837,12 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'medium',
     cognitiveLevel: 'apply',
     stem: 'An application running on a VM in a VNet must access an Azure Storage account using a private RFC 1918 IP address. Public network access on the storage account must be disabled entirely. Which resource should you create?',
+    explanation: 'A private endpoint assigns the storage account a private IP inside your VNet and subnet; combined with disabling public access, it becomes the only way to reach the account.',
+    distractorNotes: [
+      'A public IP is the opposite of what is required — it exposes the resource to the internet.',
+      'A service tag named Internet on the storage firewall would explicitly allow public internet access.',
+      'An inbound NAT rule forwards ports to a VM on a load balancer; it does not give the storage account a private IP.',
+    ],
     correct: ['A private endpoint for the storage account in the same VNet and subnet as the application VM'],
     distractors: [
       'A public IP address with a Standard SKU',
@@ -631,18 +854,56 @@ export const questionBank: QuestionSeed[] = [
   },
   {
     domain: DOMAINS.NW,
-    skill: 'Implement Azure Bastion',
+    skill: 'Configure load balancing and traffic routing',
     difficulty: 'medium',
     cognitiveLevel: 'apply',
-    stem: 'Administrators need to connect via RDP and SSH to virtual machines that do NOT have public IP addresses. The connection must be made through the Azure portal over TLS. Which service provides this capability?',
-    correct: ['Azure Bastion deployed in the same VNet as the VMs'],
-    distractors: [
-      'Azure Front Door with RDP/SSH health probes',
-      'Azure CDN with a remote desktop endpoint',
-      'Azure Blob Storage with an RDP container',
-    ],
+    stem: 'Select the appropriate option for each row. Each option can be used only once.',
+    explanation: 'Application Gateway is the regional L7 service with URL path-based routing and TLS termination; Load Balancer is the regional L4 TCP/UDP service; Traffic Manager routes at the DNS level across regions; Front Door is the global L7 service with WAF and edge caching.',
+    correct: [],
+    distractors: [],
     sourceUrl: STUDY_GUIDE,
-    type: 'single',
+    type: 'hot_area',
+    hotArea: {
+      columns: ['Azure Load Balancer', 'Azure Application Gateway', 'Azure Traffic Manager', 'Azure Front Door'],
+      rows: [
+        {
+          label: 'Regional HTTP(S) traffic that requires URL path-based routing and TLS termination',
+          cells: [
+            { text: 'Azure Load Balancer', correct: false },
+            { text: 'Azure Application Gateway', correct: true },
+            { text: 'Azure Traffic Manager', correct: false },
+            { text: 'Azure Front Door', correct: false },
+          ],
+        },
+        {
+          label: 'TCP/UDP traffic to virtual machines in one region, with no HTTP awareness',
+          cells: [
+            { text: 'Azure Load Balancer', correct: true },
+            { text: 'Azure Application Gateway', correct: false },
+            { text: 'Azure Traffic Manager', correct: false },
+            { text: 'Azure Front Door', correct: false },
+          ],
+        },
+        {
+          label: 'DNS-based routing of HTTP(S) traffic to endpoints in multiple regions',
+          cells: [
+            { text: 'Azure Load Balancer', correct: false },
+            { text: 'Azure Application Gateway', correct: false },
+            { text: 'Azure Traffic Manager', correct: true },
+            { text: 'Azure Front Door', correct: false },
+          ],
+        },
+        {
+          label: 'Global HTTP(S) traffic with WAF protection and caching at edge locations',
+          cells: [
+            { text: 'Azure Load Balancer', correct: false },
+            { text: 'Azure Application Gateway', correct: false },
+            { text: 'Azure Traffic Manager', correct: false },
+            { text: 'Azure Front Door', correct: true },
+          ],
+        },
+      ],
+    },
   },
   {
     domain: DOMAINS.NW,
@@ -650,7 +911,13 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'medium',
     cognitiveLevel: 'apply',
     stem: 'All outbound internet-bound traffic from the app-subnet must be inspected by a network virtual appliance (NVA) before reaching the internet. The NVA is deployed in a different subnet within the same VNet. What must you configure?',
-    correct: ['A route table with a route for 0.0.0.0/0 whose next hop type is Virtual Appliance, pointing to the NVA IP, and associate it with app-subnet'],
+    explanation: 'A route table with a 0.0.0.0/0 route whose next hop type is Virtual Appliance (pointing at the NVA\'s IP), associated with app-subnet, forces all internet-bound traffic from that subnet through the NVA.',
+    distractorNotes: [
+      'A CNAME record maps one DNS name to another; DNS cannot redirect routed network traffic.',
+      'An Append-effect policy modifies resource properties at deployment; it does not steer existing traffic.',
+      'Blob lifecycle rules manage storage tiers and are unrelated to routing.',
+    ],
+    correct: ['A route table with a 0.0.0.0/0 route pointing to the NVA, associated with app-subnet'],
     distractors: [
       'A CNAME DNS record that maps internet traffic to the NVA',
       'An Azure Policy with an Append effect enforcing the NVA path',
@@ -665,7 +932,13 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'medium',
     cognitiveLevel: 'apply',
     stem: 'Three backend VMs in a VNet must receive evenly distributed TCP traffic on port 80 from other services within the same VNet. The load balancer must NOT be exposed to the internet. Which solution should you deploy?',
-    correct: ['An internal Azure Load Balancer with a backend pool containing the three VMs and a health probe on port 80'],
+    explanation: 'An internal Azure Load Balancer distributes TCP/UDP traffic among backend pool VMs using private IPs; the health probe on port 80 ensures only healthy VMs receive traffic.',
+    distractorNotes: [
+      'A DNS zone alone resolves names; it does not distribute traffic between servers.',
+      'A Recovery Services vault provides backup, not load balancing.',
+      'A management group organizes subscriptions for governance; it has no networking function.',
+    ],
+    correct: ['An internal Azure Load Balancer with the three VMs in the backend pool'],
     distractors: [
       'A public DNS zone without any load balancer configuration',
       'A Recovery Services vault with a network rule',
@@ -680,7 +953,13 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'medium',
     cognitiveLevel: 'apply',
     stem: 'You need to host the public DNS zone for contoso.com authoritatively in Azure. The domain is registered with a third-party registrar. What steps are required?',
-    correct: ['Create a public DNS zone named contoso.com in Azure, then update the name servers at the domain registrar with the Azure DNS name servers listed in the zone'],
+    explanation: 'Hosting a public zone means creating the zone in Azure and pointing the registrar at the four Azure DNS name servers shown in the zone\'s NS records — the registrar is then no longer the authority.',
+    distractorNotes: [
+      'A private DNS zone resolves names only inside linked VNets; it cannot host a public internet domain.',
+      'An NSG filters network traffic; it plays no part in DNS delegation.',
+      'A managed identity with DNS Contributor is a permission identity, not a step to host the public zone.',
+    ],
+    correct: ['Create the public DNS zone in Azure and point the registrar at the Azure NS records'],
     distractors: [
       'Create a private DNS zone and link it to every VNet in the subscription',
       'Associate an NSG with the domain name at the registrar',
@@ -695,6 +974,11 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'hard',
     cognitiveLevel: 'analyze',
     stem: 'A VM is not receiving traffic that appears to be allowed by a subnet-level NSG rule. You need to troubleshoot by examining the effective security rules for the VM. Which two locations should you check to fully understand why traffic is being blocked?',
+    explanation: 'Effective security rules combine the NSG on the VM\'s network interface with the NSG on its subnet, plus all default rules, evaluated by priority — both associations must be examined to see the full picture.',
+    distractorNotes: [
+      'Tags on a storage account have no effect on the VM\'s network filtering.',
+      'Backup policy determines recovery behavior, not which traffic reaches the VM.',
+    ],
     correct: [
       'The NSG associated directly with the network interface of the VM',
       'The default security rules and priority ordering across all applicable NSGs',
@@ -712,6 +996,12 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'hard',
     cognitiveLevel: 'analyze',
     stem: 'VNet-A is peered with VNet-B. VNet-B is peered with VNet-C. A VM in VNet-A must communicate directly with a VM in VNet-C without routing through VNet-B. What is required?',
+    explanation: 'VNet peering is not transitive: A-B and B-C peering do not connect A to C. A direct peering between VNet-A and VNet-C is required.',
+    distractorNotes: [
+      'Peering is never automatically transitive across a chain of VNets.',
+      'Tags are metadata and have no effect on routing or connectivity.',
+      'Moving VNets into one resource group is organizational; resource group membership does not create connectivity.',
+    ],
     correct: ['Create a direct peering between VNet-A and VNet-C, because VNet peering is not transitive by default'],
     distractors: [
       'No action is needed because peering is automatically transitive across all peered VNets',
@@ -723,7 +1013,7 @@ export const questionBank: QuestionSeed[] = [
   },
 
   // ═══════════════════════════════════════════════════════════════
-  // MONITORING AND RECOVERY — 7 + 1 case study (1 easy, 3 medium, 3 hard)
+  // MONITORING AND RECOVERY — 7 + 1 case study (1 easy, 3 medium, 4 hard)
   // ═══════════════════════════════════════════════════════════════
 
   {
@@ -732,10 +1022,16 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'easy',
     cognitiveLevel: 'apply',
     stem: 'You need to view the average CPU utilization of a production VM over the past hour to diagnose performance issues. Where should you look?',
-    correct: ['Azure Monitor Metrics for the VM, selecting the Percentage CPU metric with a one-hour time range'],
+    explanation: 'Azure Monitor Metrics shows resource metrics such as Percentage CPU with selectable time ranges — the right place to review a one-hour window of VM CPU.',
+    distractorNotes: [
+      'Azure Policy compliance shows governance status of resources, not performance metrics.',
+      'Cost Management cost analysis reports spending, not CPU utilization.',
+      'Microsoft Entra sign-in logs record authentication events, not VM resource usage.',
+    ],
+    correct: ['Azure Monitor Metrics, selecting the Percentage CPU metric for one hour'],
     distractors: [
-      'Azure Policy compliance dashboard',
-      'Cost Management cost analysis export',
+      'Azure Policy compliance dashboard for the VM',
+      'Cost Management cost analysis export for the subscription',
       'Microsoft Entra ID sign-in logs',
     ],
     sourceUrl: STUDY_GUIDE,
@@ -743,18 +1039,24 @@ export const questionBank: QuestionSeed[] = [
   },
   {
     domain: DOMAINS.MO,
-    skill: 'Set up alert rules and action groups',
+    skill: 'Perform backup and restore operations',
     difficulty: 'medium',
     cognitiveLevel: 'apply',
-    stem: 'When a CPU alert fires for any production VM, the operations team must receive both an email and a webhook call to their incident management system. What should you associate with the alert rule?',
-    correct: ['An action group that contains both an email notification action and a webhook action'],
+    stem: 'A critical file was accidentally deleted from a Windows VM that is protected by Azure Backup. You need to restore only that file from the latest recovery point without restoring the whole VM. Arrange the steps in the correct order. Not all steps must be used.',
+    explanation: 'File Recovery mounts the recovery point as a local volume: open the Backup dashboard, choose File Recovery, select the recovery point and copy the password, download the script, run it as administrator with the password, copy the file, then unmount the disks. Gallery images and blob versioning are unrelated.',
+    correct: [
+      'In the VM\'s Backup dashboard, select File Recovery',
+      'Select the recovery point and copy the password shown in the portal',
+      'Download the executable script generated by Azure Backup',
+      'Run the executable as an administrator and paste the password',
+      'Copy the required file, then select Unmount disks in the portal',
+    ],
     distractors: [
-      'A route table with email and webhook next-hop types',
-      'A stored access policy with email and webhook permissions',
-      'A deployment slot that sends notifications',
+      'Recreate the VM from the gallery image version',
+      'Enable blob versioning on the recovery point',
     ],
     sourceUrl: STUDY_GUIDE,
-    type: 'single',
+    type: 'ordering',
   },
   {
     domain: DOMAINS.MO,
@@ -762,7 +1064,13 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'medium',
     cognitiveLevel: 'apply',
     stem: 'Multiple VMs send their diagnostic logs to the same Log Analytics workspace. You need to find all error-level events from these VMs in the last 30 minutes. What should you use?',
-    correct: ['A Kusto Query Language (KQL) query in the Log Analytics workspace filtering by severity level and time range'],
+    explanation: 'A Kusto Query Language (KQL) query against the Log Analytics workspace filters events by severity level and time range — the standard way to analyze collected logs.',
+    distractorNotes: [
+      'An inbound NAT rule forwards ports on a load balancer; it does not query logs.',
+      'A resource tag labels resources; it cannot search log events.',
+      'A TXT record in DNS stores verification text, not log analysis capability.',
+    ],
+    correct: ['A KQL query in the workspace filtering by severity and time'],
     distractors: [
       'An inbound NAT rule on the Azure Load Balancer',
       'A resource tag applied to the resource group',
@@ -777,6 +1085,11 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'medium',
     cognitiveLevel: 'apply',
     stem: 'A production VM must be backed up daily at 2:00 AM, with backups retained for 30 days before automatic deletion. Which two Azure resources must you configure?',
+    explanation: 'Azure Backup requires a Recovery Services vault to store recovery points and a backup policy that defines the daily 2 AM schedule and the 30-day retention period.',
+    distractorNotes: [
+      'An NSG filters network traffic; it has no concept of backup retention.',
+      'Blob lifecycle management rules apply to blob tiers in storage accounts, not to VM backup schedules.',
+    ],
     correct: [
       'A Recovery Services vault',
       'A backup policy with daily schedule and 30-day retention',
@@ -794,7 +1107,13 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'hard',
     cognitiveLevel: 'apply',
     stem: 'You need to send all Azure Activity Log entries from your subscription to a Log Analytics workspace for long-term retention and querying, including administrative operations and service health events. What should you create?',
-    correct: ['A diagnostic setting on the subscription configured to stream the required log categories to the Log Analytics workspace'],
+    explanation: 'A diagnostic setting on the subscription streams the required activity log categories (administrative, service health, and others) to a Log Analytics workspace.',
+    distractorNotes: [
+      'A SAS token grants access to storage; it does not collect or route logs.',
+      'An availability set protects VMs against faults; it is unrelated to log collection.',
+      'Mapping a custom DNS name to the workspace changes its endpoint name; it does not collect subscription logs.',
+    ],
+    correct: ['A subscription diagnostic setting streaming the required log categories to the workspace'],
     distractors: [
       'A SAS token for the Log Analytics workspace public endpoint',
       'An availability set containing the subscription resources',
@@ -809,6 +1128,11 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'hard',
     cognitiveLevel: 'analyze',
     stem: 'You are configuring Azure Site Recovery to replicate production VMs from East US to West US for disaster recovery. Which two configurations are essential components of the disaster recovery plan?',
+    explanation: 'ASR needs replication settings (target region and recovery network) to define where VMs fail over to, and a recovery plan that sequences the failover order and any post-failover scripts.',
+    distractorNotes: [
+      'Enabling anonymous public access on VMs is a serious security risk and has no role in replication.',
+      'Assigning Owner to every user violates least privilege and does not contribute to disaster recovery.',
+    ],
     correct: [
       'Replication settings that specify the target region and recovery network',
       'A recovery plan that defines the failover order and any post-failover scripts for the VMs',
@@ -826,7 +1150,13 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'hard',
     cognitiveLevel: 'apply',
     stem: 'A VM was accidentally misconfigured, but its data disk contains critical files. You have a valid Azure Backup recovery point from the previous night. You need to retrieve only specific files from the recovery point without overwriting the current VM or its OS disk. Which operation should you choose?',
-    correct: ['File recovery from the recovery point using Azure Backup, which mounts the snapshot as a local volume for file extraction'],
+    explanation: 'Azure Backup File Recovery mounts the recovery point\'s snapshot as a local volume on the current VM so you can copy specific files — without restoring or replacing anything.',
+    distractorNotes: [
+      'A full VM restore replaces the VM and its disks, overwriting the current state — the opposite of what is required.',
+      'A Site Recovery failover moves the workload to the secondary region; it is for disaster recovery, not file retrieval.',
+      'Redeploying the subscription destroys all resources; it is far more destructive than the problem warrants.',
+    ],
+    correct: ['File recovery from the recovery point, which mounts the snapshot as a local volume'],
     distractors: [
       'Full VM restore that replaces the existing VM entirely',
       'A planned Site Recovery failover to the secondary region',
@@ -846,6 +1176,12 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'medium',
     cognitiveLevel: 'apply',
     stem: 'Contoso Ltd. needs to migrate their 5 TB of department file shares to Azure. Multiple Azure VMs across different subnets must mount the shares simultaneously using SMB. Which Azure service should Contoso provision?',
+    explanation: 'Azure Files provides SMB shares that multiple VMs across different subnets can mount simultaneously, matching Contoso\'s file migration requirement with a fully managed service.',
+    distractorNotes: [
+      'A managed disk can only be attached to a single VM at a time and cannot serve multiple department shares.',
+      'Azure Queue Storage is an asynchronous messaging service, not a file system.',
+      'Azure Table Storage is a NoSQL store and does not provide an SMB mount point.',
+    ],
     correct: ['An Azure Files share in a storage account, mounted via SMB on the Azure VMs'],
     distractors: [
       'An Azure managed disk attached individually to each VM',
@@ -863,7 +1199,13 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'medium',
     cognitiveLevel: 'apply',
     stem: 'Contoso\'s three-tier web application must automatically scale between 2 and 10 instances based on CPU utilization, as specified in their requirements. Where should the autoscale settings be configured?',
-    correct: ['On the App Service Plan associated with the web application, defining scale-out and scale-in rules based on CPU percentage'],
+    explanation: 'Autoscale rules for a web app live on the App Service plan that hosts it; scaling between 2 and 10 instances based on CPU is configured there.',
+    distractorNotes: [
+      'The DNS zone maps the domain to the app; it does not control instance count.',
+      'An NSG filters traffic to the web subnet; it does not scale the application.',
+      'The Recovery Services vault stores backups; it does not manage autoscaling.',
+    ],
+    correct: ['On the App Service Plan, defining scale-out and scale-in rules based on CPU percentage'],
     distractors: [
       'On the Azure DNS zone serving the contoso.com domain',
       'On the network security group protecting the web subnet',
@@ -880,7 +1222,13 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'hard',
     cognitiveLevel: 'apply',
     stem: 'Per Contoso\'s security requirements, administrators must connect to VMs without exposing public IP addresses. The contoso-vnet already exists with three subnets. Which service should be deployed, and what is a prerequisite?',
-    correct: ['Azure Bastion, which requires a dedicated subnet named AzureBastionSubnet with at least a /26 address range within contoso-vnet'],
+    explanation: 'Azure Bastion provides secure RDP/SSH access over TLS without any public IP on the VMs; it requires a dedicated subnet named AzureBastionSubnet with at least a /26 address range in the same VNet.',
+    distractorNotes: [
+      'Azure Front Door routes HTTP(S) traffic to backends; it does not provide RDP/SSH sessions to VMs.',
+      'Azure CDN caches content at edge locations; combining it with a point-to-site VPN is not a supported remote-access design.',
+      'A storage account cannot host RDP sessions; there is no such capability as an "RDP file share".',
+    ],
+    correct: ['Azure Bastion, which requires a dedicated AzureBastionSubnet with a /26 range'],
     distractors: [
       'Azure Front Door with a backend pool containing all VMs',
       'Azure CDN with a point-to-site VPN endpoint',
@@ -897,6 +1245,11 @@ export const questionBank: QuestionSeed[] = [
     difficulty: 'hard',
     cognitiveLevel: 'apply',
     stem: 'Contoso requires that the operations team be notified within 5 minutes when any VM CPU exceeds 90%, as stated in their monitoring requirements. Which two Azure components must be configured to meet this requirement?',
+    explanation: 'An alert rule with a 1-minute evaluation frequency detects the 90% CPU breach quickly, and an action group with email/webhook actions delivers the notification — together meeting the 5-minute SLA.',
+    distractorNotes: [
+      'A blob lifecycle rule manages storage tiers; it cannot monitor VM CPU.',
+      'A DNS CNAME record maps names; it cannot send monitoring notifications.',
+    ],
     correct: [
       'An alert rule with a static threshold of 90% CPU and an evaluation frequency of 1 minute',
       'An action group containing email and/or webhook notification actions',
